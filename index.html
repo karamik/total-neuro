@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOTAL‑Neuro — AI-to-Chip Compiler</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00f0ff;
+            --neon-purple: #b829dd;
+            --neon-green: #00ff88;
+            --neon-orange: #ff6b35;
+            --dark-bg: #0a0a0f;
+            --card-bg: rgba(15, 15, 25, 0.7);
+            --text-primary: #e8e8f0;
+            --text-secondary: #8892a0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Animated background grid */
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-glow {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(150px);
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .glow-1 { top: -200px; left: -200px; background: var(--neon-cyan); }
+        .glow-2 { bottom: -200px; right: -200px; background: var(--neon-purple); }
+        .glow-3 { top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--neon-green); opacity: 0.08; }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 20px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 240, 255, 0.1);
+        }
+
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .nav-links a:hover {
+            color: var(--neon-cyan);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 120px 5% 80px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 20px;
+            border-radius: 50px;
+            background: rgba(0, 240, 255, 0.1);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            color: var(--neon-cyan);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            margin-bottom: 30px;
+            animation: pulse-border 2s infinite;
+        }
+
+        @keyframes pulse-border {
+            0%, 100% { border-color: rgba(0, 240, 255, 0.3); }
+            50% { border-color: rgba(0, 240, 255, 0.7); }
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 5rem);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #fff 0%, var(--neon-cyan) 50%, var(--neon-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1rem, 2vw, 1.3rem);
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin-bottom: 40px;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 50px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--neon-green);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+            color: #000;
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 50px rgba(0, 240, 255, 0.5);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+        }
+
+        /* ===== LIVE DEMO SECTION ===== */
+        .demo-section {
+            padding: 80px 5%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-header h2 {
+            font-size: clamp(1.8rem, 4vw, 3rem);
+            font-weight: 800;
+            margin-bottom: 15px;
+        }
+
+        .section-header p {
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .demo-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        @media (max-width: 900px) {
+            .demo-container { grid-template-columns: 1fr; }
+        }
+
+        /* Terminal */
+        .terminal {
+            background: #0d0d12;
+            border-radius: 16px;
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(0, 240, 255, 0.05);
+        }
+
+        .terminal-header {
+            background: rgba(255,255,255,0.03);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .term-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .term-btn.red { background: #ff5f56; }
+        .term-btn.yellow { background: #ffbd2e; }
+        .term-btn.green { background: #27c93f; }
+
+        .terminal-title {
+            margin-left: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .terminal-body {
+            padding: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            min-height: 320px;
+        }
+
+        .term-line {
+            opacity: 0;
+            animation: fadeIn 0.3s forwards;
+        }
+
+        .term-prompt {
+            color: var(--neon-green);
+        }
+
+        .term-cmd {
+            color: var(--text-primary);
+        }
+
+        .term-output {
+            color: var(--text-secondary);
+        }
+
+        .term-success {
+            color: var(--neon-green);
+        }
+
+        .term-highlight {
+            color: var(--neon-cyan);
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 18px;
+            background: var(--neon-cyan);
+            animation: blink 1s infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* FPGA Board */
+        .fpga-board {
+            background: linear-gradient(145deg, #1a1a2e, #0f0f1a);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid rgba(0, 240, 255, 0.1);
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+
+        .fpga-chip {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(145deg, #2a2a3e, #1a1a2e);
+            border-radius: 16px;
+            margin: 0 auto 30px;
+            position: relative;
+            border: 2px solid rgba(0, 240, 255, 0.2);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fpga-chip::before {
+            content: 'VERSAL';
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: rgba(0, 240, 255, 0.3);
+            position: absolute;
+            top: 10px;
+            left: 15px;
+        }
+
+        .fpga-inner {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(145deg, #1a1a2e, #0f0f1a);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .fpga-grid {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 240, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.1) 1px, transparent 1px);
+            background-size: 15px 15px;
+        }
+
+        .fpga-leds {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .led {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #333;
+            border: 2px solid #444;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .led::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 5px;
+            width: 8px;
+            height: 5px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .led.active {
+            background: var(--neon-green);
+            border-color: var(--neon-green);
+            box-shadow: 0 0 20px var(--neon-green), 0 0 40px var(--neon-green);
+        }
+
+        .led.active-red {
+            background: var(--neon-orange);
+            border-color: var(--neon-orange);
+            box-shadow: 0 0 20px var(--neon-orange), 0 0 40px var(--neon-orange);
+        }
+
+        .led.active-cyan {
+            background: var(--neon-cyan);
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 20px var(--neon-cyan), 0 0 40px var(--neon-cyan);
+        }
+
+        .fpga-label {
+            text-align: center;
+            margin-top: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .fpga-status {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: var(--neon-green);
+            font-weight: 600;
+            min-height: 24px;
+        }
+
+        /* Demo replay button */
+        .demo-replay {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 30px;
+            padding: 10px 24px;
+            background: rgba(0, 240, 255, 0.1);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 8px;
+            color: var(--neon-cyan);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .demo-replay:hover {
+            background: rgba(0, 240, 255, 0.2);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+        }
+
+        /* Features Grid */
+        .features {
+            padding: 100px 5%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .features-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 35px;
+            transition: all 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
+            transform: scaleX(0);
+            transition: transform 0.4s;
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 240, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            background: rgba(0, 240, 255, 0.1);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+        }
+
+        .feature-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            padding: 100px 5%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .steps {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .step {
+            display: flex;
+            gap: 25px;
+            align-items: flex-start;
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.3s;
+        }
+
+        .step:hover {
+            border-color: rgba(0, 240, 255, 0.2);
+        }
+
+        .step-num {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: #000;
+            flex-shrink: 0;
+        }
+
+        .step-content h3 {
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        .step-content p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Cost Table */
+        .costs {
+            padding: 100px 5%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cost-table {
+            max-width: 1000px;
+            margin: 0 auto;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        th {
+            background: rgba(0, 240, 255, 0.1);
+            padding: 18px 20px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--neon-cyan);
+            border-bottom: 2px solid rgba(0, 240, 255, 0.2);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 18px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-secondary);
+        }
+
+        tr:hover td {
+            background: rgba(0, 240, 255, 0.03);
+        }
+
+        .savings {
+            color: var(--neon-green);
+            font-weight: 700;
+        }
+
+        /* Code Block */
+        .code-section {
+            padding: 100px 5%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .code-block {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #0d0d12;
+            border-radius: 16px;
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+
+        .code-block pre {
+            padding: 25px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+
+        .code-block code {
+            color: var(--text-primary);
+        }
+
+        .code-comment { color: #6a737d; }
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-func { color: #d2a8ff; }
+
+        /* Roadmap */
+        .roadmap {
+            padding: 100px 5%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .roadmap-grid {
+            max-width: 900px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 700px) {
+            .roadmap-grid { grid-template-columns: 1fr; }
+        }
+
+        .roadmap-col {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 35px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .roadmap-col h3 {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .status-now { background: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); }
+        .status-soon { background: var(--neon-orange); box-shadow: 0 0 10px var(--neon-orange); }
+
+        .roadmap-col ul {
+            list-style: none;
+        }
+
+        .roadmap-col li {
+            padding: 10px 0;
+            color: var(--text-secondary);
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .roadmap-col li::before {
+            content: '›';
+            color: var(--neon-cyan);
+            font-weight: 700;
+        }
+
+        /* Footer */
+        footer {
+            padding: 60px 5% 40px;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--neon-cyan);
+        }
+
+        .footer-copy {
+            color: rgba(255,255,255,0.3);
+            font-size: 0.85rem;
+        }
+
+        /* Scroll animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s ease-out;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Particles canvas */
+        #particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <div class="bg-glow glow-1"></div>
+    <div class="bg-glow glow-2"></div>
+    <div class="bg-glow glow-3"></div>
+    <canvas id="particles"></canvas>
+
+    <nav>
+        <div class="logo">TOTAL‑Neuro</div>
+        <ul class="nav-links">
+            <li><a href="#demo">Demo</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how">How It Works</a></li>
+            <li><a href="#costs">Economics</a></li>
+            <li><a href="#roadmap">Roadmap</a></li>
+        </ul>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-badge">
+            <span>⚡</span> AI-to-Chip Compiler
+        </div>
+        <h1>Turn any neural network<br>into a chip in 10 minutes</h1>
+        <p class="hero-subtitle">
+            Runs locally. No clouds. &lt; 2 ms latency.<br>
+            Saves up to 99% of electricity.
+        </p>
+        <div class="hero-stats">
+            <div class="stat-item">
+                <div class="stat-value">&lt;2ms</div>
+                <div class="stat-label">Latency</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">1-10W</div>
+                <div class="stat-label">Power</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">50x</div>
+                <div class="stat-label">Cheaper</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">99%</div>
+                <div class="stat-label">Less Energy</div>
+            </div>
+        </div>
+        <div class="btn-group">
+            <a href="#demo" class="btn btn-primary">🚀 Watch Demo</a>
+            <a href="https://github.com/karamik/total-neuro" class="btn btn-secondary" target="_blank">⭐ GitHub</a>
+        </div>
+    </section>
+
+    <!-- ===== LIVE DEMO SECTION ===== -->
+    <section class="demo-section" id="demo">
+        <div class="section-header reveal">
+            <h2>🎬 Live Demo</h2>
+            <p>One command — and your neural network runs on hardware. No clouds, no delays.</p>
+        </div>
+        <div class="demo-container reveal">
+            <div class="terminal">
+                <div class="terminal-header">
+                    <div class="term-btn red"></div>
+                    <div class="term-btn yellow"></div>
+                    <div class="term-btn green"></div>
+                    <span class="terminal-title">total-neuro — convert</span>
+                </div>
+                <div class="terminal-body" id="terminal-body">
+                    <div class="term-line" style="animation-delay: 0.2s">
+                        <span class="term-prompt">$</span> <span class="term-cmd">total-neuro convert --model TinyLlama/TinyLlama-1.1B-Chat-v1.0 --target fpga --output my_chip.bin</span>
+                    </div>
+                    <div class="term-line" style="animation-delay: 1.5s">
+                        <span class="term-output">[INFO] Loading model from HuggingFace...</span>
+                    </div>
+                    <div class="term-line" style="animation-delay: 2.2s">
+                        <span class="term-output">[INFO] Adaptive BTR calibration: 99.4% accuracy retained</span>
+                    </div>
+                    <div class="term-line" style="animation-delay: 3.0s">
+                        <span class="term-output">[INFO] Phase-Trellis Encoder: packing temporal spikes...</span>
+                    </div>
+                    <div class="term-line" style="animation-delay: 3.8s">
+                        <span class="term-output">[INFO] Building NoC routing map with virtual channels...</span>
+                    </div>
+                    <div class="term-line" style="animation-delay: 4.5s">
+                        <span class="term-output">[INFO] Generating Loader FSM binary...</span>
+                    </div>
+                    <div class="term-line" style="animation-delay: 5.2s">
+                        <span class="term-success">[DONE] Firmware ready: my_chip.bin (2.3 MB)</span>
+                    </div>
+                    <div class="term-line" style="animation-delay: 5.8s">
+                        <span class="term-prompt">$</span> <span class="term-cmd">total-neuro upload --port /dev/ttyUSB0 --bin my_chip.bin</span>
+                    </div>
+                    <div class="term-line" style="animation-delay: 6.5s">
+                        <span class="term-output">[INFO] Connecting to FPGA board...</span>
+                    </div>
+                    <div class="term-line" style="animation-delay: 7.0s">
+                        <span class="term-output">[INFO] Verifying firmware signature... <span class="term-highlight">✓ VALID</span></span>
+                    </div>
+                    <div class="term-line" style="animation-delay: 7.5s">
+                        <span class="term-output">[INFO] Uploading to SPI-Flash...</span>
+                    </div>
+                    <div class="term-line" style="animation-delay: 8.2s">
+                        <span class="term-success">[DONE] Upload complete. Booting...</span>
+                    </div>
+                    <div class="term-line" style="animation-delay: 8.8s">
+                        <span class="term-prompt">$</span> <span class="cursor"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fpga-board">
+                <div class="fpga-chip">
+                    <div class="fpga-inner">
+                        <div class="fpga-grid"></div>
+                    </div>
+                </div>
+                <div class="fpga-leds">
+                    <div class="led" id="led1"></div>
+                    <div class="led" id="led2"></div>
+                    <div class="led" id="led3"></div>
+                    <div class="led" id="led4"></div>
+                </div>
+                <div class="fpga-label">AMD Versal XQRVC1902</div>
+                <div class="fpga-status" id="fpga-status">Waiting for upload...</div>
+                <div style="text-align:center">
+                    <button class="demo-replay" onclick="replayDemo()">
+                        <span>↻</span> Replay Demo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="features">
+        <div class="section-header reveal">
+            <h2>🔥 Key Features</h2>
+            <p>Everything you need for production-ready AI on silicon</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card reveal">
+                <div class="feature-icon">🖱️</div>
+                <h3>One-click Model-to-Chip</h3>
+                <p>One command — and you have a binary for FPGA or ASIC. Supports PyTorch, ONNX, and Hugging Face.</p>
+            </div>
+            <div class="feature-card reveal">
+                <div class="feature-icon">⏱️</div>
+                <h3>Hardware Determinism</h3>
+                <p>Strict STDP timing windows guarantee every spike arrives exactly when expected. No jitter, no collisions.</p>
+            </div>
+            <div class="feature-card reveal">
+                <div class="feature-icon">🔒</div>
+                <h3>Hardware Security</h3>
+                <p>The bootloader verifies the firmware signature at boot. Protection against physical attacks and counterfeit hardware.</p>
+            </div>
+            <div class="feature-card reveal">
+                <div class="feature-icon">⚡</div>
+                <h3>CPU-less Boot</h3>
+                <p>Built-in finite-state machine (Loader FSM) loads data from SPI-Flash by itself. No external processor needed.</p>
+            </div>
+            <div class="feature-card reveal">
+                <div class="feature-icon">🏭</div>
+                <h3>Prototype to ASIC in One Flow</h3>
+                <p>Test on FPGA first, then switch to 28-nm production with a single command. GDSII ready in a day.</p>
+            </div>
+            <div class="feature-card reveal">
+                <div class="feature-icon">📦</div>
+                <h3>Pre-compiled Models</h3>
+                <p>TinyLlama, Whisper, YOLO, Stable Diffusion — already compiled. Just download and run.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="how-it-works" id="how">
+        <div class="section-header reveal">
+            <h2>🛠️ How It Works</h2>
+            <p>Full cycle from model to chip in under 10 minutes</p>
+        </div>
+        <div class="steps">
+            <div class="step reveal">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <h3>Upload Your Model</h3>
+                    <p>PyTorch, ONNX, or pick a ready-made one from Hugging Face — TinyLlama, Whisper, YOLO, ResNet.</p>
+                </div>
+            </div>
+            <div class="step reveal">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <h3>Adaptive BTR Calibration</h3>
+                    <p>Automatic spike-threshold calibration retaining >99.2% accuracy of the original model.</p>
+                </div>
+            </div>
+            <div class="step reveal">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                    <h3>Phase-Trellis Encoder</h3>
+                    <p>Packs data into temporal spikes with minimal latency and maximum density.</p>
+                </div>
+            </div>
+            <div class="step reveal">
+                <div class="step-num">4</div>
+                <div class="step-content">
+                    <h3>NoC Routing Map</h3>
+                    <p>The compiler builds a Network-on-Chip routing map with virtual channels and hard guarantees.</p>
+                </div>
+            </div>
+            <div class="step reveal">
+                <div class="step-num">5</div>
+                <div class="step-content">
+                    <h3>Loader FSM + Binary</h3>
+                    <p>Generates a binary for FPGA or ASIC tape-out. The whole process takes &lt;10 minutes for a 1B-parameter model.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="code-section">
+        <div class="section-header reveal">
+            <h2>🧪 Get Started Now</h2>
+            <p>Install and run in 5 minutes</p>
+        </div>
+        <div class="code-block reveal">
+            <div class="terminal-header">
+                <div class="term-btn red"></div>
+                <div class="term-btn yellow"></div>
+                <div class="term-btn green"></div>
+                <span class="terminal-title">bash</span>
+            </div>
+            <pre><code><span class="code-comment"># Install</span>
+<span class="code-keyword">pip</span> install total-neuro
+
+<span class="code-comment"># Convert a model</span>
+<span class="code-func">total-neuro</span> convert --model TinyLlama/TinyLlama-1.1B-Chat-v1.0 --target fpga --output my_chip.bin
+
+<span class="code-comment"># Upload to your FPGA board (if connected)</span>
+<span class="code-func">total-neuro</span> upload --port /dev/ttyUSB0 --bin my_chip.bin</code></pre>
+        </div>
+    </section>
+
+    <section class="costs" id="costs">
+        <div class="section-header reveal">
+            <h2>📊 Cost Savings: The Numbers</h2>
+            <p>Traditional approach vs TOTAL‑Neuro</p>
+        </div>
+        <div class="cost-table reveal">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Scenario</th>
+                        <th>Traditional (GPU/Cloud)</th>
+                        <th>TOTAL‑Neuro</th>
+                        <th>Savings</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1M cloud inference requests / mo</td>
+                        <td>$10,000 / month</td>
+                        <td>$50 / month (electricity)</td>
+                        <td class="savings">99.5%</td>
+                    </tr>
+                    <tr>
+                        <td>Inference / training server</td>
+                        <td>10 servers @ $50K/year</td>
+                        <td>1 board @ $1K</td>
+                        <td class="savings">$499K / year</td>
+                    </tr>
+                    <tr>
+                        <td>Time to market (chip)</td>
+                        <td>3–5 years</td>
+                        <td>3–6 months</td>
+                        <td class="savings">10x faster</td>
+                    </tr>
+                    <tr>
+                        <td>Data-centre power</td>
+                        <td>10 MW</td>
+                        <td>0.1 MW</td>
+                        <td class="savings">99% reduction</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="roadmap" id="roadmap">
+        <div class="section-header reveal">
+            <h2>📈 Roadmap</h2>
+            <p>What works today and what's planned for 2026</p>
+        </div>
+        <div class="roadmap-grid reveal">
+            <div class="roadmap-col">
+                <h3><span class="status-dot status-now"></span> Available Now</h3>
+                <ul>
+                    <li>TinyLlama, Whisper, YOLO, ResNet</li>
+                    <li>28 nm (GDSII ready)</li>
+                    <li>Python SDK + CLI</li>
+                    <li>Open repo + examples</li>
+                </ul>
+            </div>
+            <div class="roadmap-col">
+                <h3><span class="status-dot status-soon"></span> Coming in 2026</h3>
+                <ul>
+                    <li>LLaMA-2, Mistral, Stable Diffusion 3</li>
+                    <li>16 nm, 7 nm</li>
+                    <li>C++, Rust, Android HAL, iOS</li>
+                    <li>Partner ecosystem</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-logo">TOTAL‑Neuro</div>
+        <div class="footer-links">
+            <a href="https://github.com/karamik/total-neuro" target="_blank">GitHub</a>
+            <a href="#">Telegram</a>
+            <a href="#">@tec_support_bot</a>
+            <a href="#">MIT License</a>
+        </div>
+        <p class="footer-copy">
+            © 2026 TOTAL‑Neuro. All rights reserved.<br>
+            Built with ❤️ for engineers who change the hardware world.
+        </p>
+    </footer>
+
+    <script>
+        // ===== PARTICLES =====
+        const canvas = document.getElementById('particles');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+        for (let i = 0; i < 60; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 0.3,
+                vy: (Math.random() - 0.5) * 0.3,
+                size: Math.random() * 2 + 1
+            });
+        }
+
+        function drawParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                if (p.x < 0) p.x = canvas.width;
+                if (p.x > canvas.width) p.x = 0;
+                if (p.y < 0) p.y = canvas.height;
+                if (p.y > canvas.height) p.y = 0;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 240, 255, 0.3)';
+                ctx.fill();
+            });
+
+            // Connect nearby particles
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 150) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(0, 240, 255, ${0.1 * (1 - dist / 150)})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(drawParticles);
+        }
+        drawParticles();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // ===== SCROLL REVEAL =====
+        const reveals = document.querySelectorAll('.reveal');
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        reveals.forEach(el => revealObserver.observe(el));
+
+        // ===== DEMO ANIMATION =====
+        const ledSequence = [
+            { time: 1500, led: 'led1', cls: 'active-cyan', status: 'Loading model...' },
+            { time: 2200, led: 'led2', cls: 'active', status: 'BTR calibration...' },
+            { time: 3000, led: 'led3', cls: 'active-cyan', status: 'Phase-Trellis encoding...' },
+            { time: 3800, led: 'led2', cls: 'active', status: 'NoC routing...' },
+            { time: 4500, led: 'led3', cls: 'active-cyan', status: 'Generating binary...' },
+            { time: 5200, led: 'led1', cls: 'active', status: 'Done! my_chip.bin' },
+            { time: 6500, led: 'led4', cls: 'active-red', status: 'Connecting to FPGA...' },
+            { time: 7000, led: 'led4', cls: 'active', status: 'Signature verified ✓' },
+            { time: 7500, led: 'led2', cls: 'active-cyan', status: 'Flashing SPI-Flash...' },
+            { time: 8200, led: 'led1', cls: 'active', status: 'Upload complete!' },
+            { time: 8500, led: 'led1', cls: 'active', status: 'AI running on chip ⚡' },
+            { time: 8800, led: 'led2', cls: 'active', status: 'AI running on chip ⚡' },
+            { time: 9100, led: 'led3', cls: 'active', status: 'AI running on chip ⚡' },
+            { time: 9400, led: 'led4', cls: 'active', status: 'AI running on chip ⚡' },
+        ];
+
+        let demoTimeouts = [];
+
+        function runDemo() {
+            // Reset
+            demoTimeouts.forEach(t => clearTimeout(t));
+            demoTimeouts = [];
+            document.querySelectorAll('.led').forEach(l => l.className = 'led');
+            document.getElementById('fpga-status').textContent = 'Waiting for upload...';
+            document.getElementById('fpga-status').style.color = 'var(--text-secondary)';
+
+            // Reset terminal animation
+            const termBody = document.getElementById('terminal-body');
+            const lines = termBody.querySelectorAll('.term-line');
+            lines.forEach(line => {
+                line.style.animation = 'none';
+                line.offsetHeight; // trigger reflow
+                line.style.animation = '';
+            });
+
+            // LED sequence
+            ledSequence.forEach(step => {
+                const t = setTimeout(() => {
+                    document.querySelectorAll('.led').forEach(l => l.className = 'led');
+                    document.getElementById(step.led).classList.add(step.cls);
+                    const statusEl = document.getElementById('fpga-status');
+                    statusEl.textContent = step.status;
+                    statusEl.style.color = step.cls === 'active-red' ? 'var(--neon-orange)' : 'var(--neon-green)';
+                }, step.time);
+                demoTimeouts.push(t);
+            });
+        }
+
+        function replayDemo() {
+            runDemo();
+        }
+
+        // Start demo on load
+        window.addEventListener('load', () => {
+            setTimeout(runDemo, 500);
+        });
+
+        // Restart demo when section scrolls into view
+        const demoSection = document.getElementById('demo');
+        let demoPlayed = false;
+        const demoObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !demoPlayed) {
+                    demoPlayed = true;
+                    runDemo();
+                }
+            });
+        }, { threshold: 0.3 });
+        demoObserver.observe(demoSection);
+    </script>
+</body>
+</html>
