@@ -28,3 +28,32 @@ def upload_firmware(port: str, bin_file: str) -> bool:
     """
     # Здесь будет логика загрузки через драйвер
     return True
+# ... (существующий код)
+
+from .proof_package import HardwareManifest, ProofPackage
+
+def get_hardware_manifest(chip_id: str, firmware: str, inference_result: dict) -> HardwareManifest:
+    """
+    Собирает манифест из данных, полученных с чипа.
+    """
+    manifest = HardwareManifest(chip_id, firmware)
+    manifest.set_latency(inference_result.get("latency_us", 0))
+    manifest.set_power(inference_result.get("power_mw", 0))
+    manifest.set_spike_times(inference_result.get("spike_times", []))
+    manifest.set_violations(inference_result.get("violations", 0))
+    manifest.set_router_stats(
+        inference_result.get("vc_usage", [0,0,0,0]),
+        inference_result.get("collisions", 0)
+    )
+    manifest.set_input_hash(inference_result.get("input_data", b""))
+    manifest.set_output_hash(inference_result.get("output_data", b""))
+    return manifest
+
+def create_proof_package(chip_id: str, firmware: str, inference_result: dict, inspection_manifest: dict = None) -> str:
+    """
+    Создаёт полный Proof-пакет на основе данных чипа и результатов инспекции.
+    """
+    manifest = get_hardware_manifest(chip_id, firmware, inference_result)
+    package = ProofPackage(manifest, inspection_manifest)
+    # Подпись будет добавлена позже (интеграция с QRAP)
+    return package.to_json()
