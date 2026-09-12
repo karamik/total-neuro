@@ -16,6 +16,33 @@ import requests
 from datetime import datetime
 from total_neuro.simulator import NeuroSimulator  # заглушка, поставляется отдельно
 
+# Мягкий импорт аппаратной аттестации (модуль лежит в TurboLLM)
+try:
+    import sys
+    sys.path.insert(0, os.path.expanduser("~/TurboLLM"))
+    from hardware_attestation import get_hardware_attestation, HardwareAttestation
+    ATTESTATION_AVAILABLE = True
+except ImportError:
+    ATTESTATION_AVAILABLE = False
+
+    def get_hardware_attestation():
+        return {
+            "attestation_available": False,
+            "attestation_ok": False,
+            "signature_ok": False,
+            "shield_ok": False,
+            "chip_unlocked": False,
+            "zeroize_active": False,
+            "puf_id": None,
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "error": "attestation_module_not_found"
+        }
+
+    class HardwareAttestation:
+        @staticmethod
+        def hash_puf_for_proof(puf_id, salt=""):
+            return hashlib.sha256(f"{puf_id}:{salt}".encode()).hexdigest()
+
 # ========== КОНФИГУРАЦИЯ ==========
 AGENT_ENDPOINT = os.getenv("AGENT_ENDPOINT", "http://localhost:8080")
 QRAP_ENDPOINT = os.getenv("QRAP_ENDPOINT", "http://qrap-node:50051/api/v1/block")
@@ -129,7 +156,7 @@ def submit_proof_to_qrap(proof_package: dict, max_retries: int = 3) -> bool:
         "poi_chain": [
             proof_package["inspection_manifest"]["proof_of_inspection"],
             proof_package["signature"]["signature"]
-        ],
+        ] + ([proof_package["puf_hash"]] if proof_package.get("puf_hash") else []),
         "payload": {
             "hardware_manifest": proof_package["hardware_manifest"],
             "inspection_manifest": proof_package["inspection_manifest"],
@@ -194,7 +221,20 @@ def main():
     print("-" * 50)
     print(f"⚡ Simulated latency: {elapsed_us/1000:.1f} ms (on CPU, would be <2 ms on FPGA)")
 
-    # 6. Генерация Hardware Manifest
+    # 6. Аппаратная аттестация чипа
+    print("\n🔐 Checking hardware attestation...")
+    hw_attestation = get_hardware_attestation()
+    if hw_attestation.get("attestation_available"):
+        if hw_attestation.get("attestation_ok"):
+            print(f"   ✅ Chip authenticated. PUF ID: {hw_attestation.get('puf_id')}")
+        else:
+            print(f"   ❌ Chip attestation FAILED: {hw_attestation.get('error')}")
+            print("   ⛔ Blocking execution for security reasons.")
+            return
+    else:
+        print(f"   ⚠️ Hardware attestation not available ({hw_attestation.get('error')}). Using simulation mode.")
+
+    # 7. Генерация Hardware Manifest
     inference_id = str(uuid.uuid4())
     hardware = generate_hardware_manifest(
         chip_id="TOTAL-NEURO-SIM-001",
@@ -235,11 +275,19 @@ def main():
         }
 
     # 8. Сборка Proof‑пакета
+    puf_hash = None
+    if hw_attestation.get("puf_id"):
+        puf_hash = HardwareAttestation.hash_puf_for_proof(
+            hw_attestation["puf_id"], salt=inference_id
+        )
+
     proof_package = {
         "package_id": "pkg-" + datetime.utcnow().strftime("%Y%m%d-%H%M%S") + "-" + inference_id[:8],
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "hardware_manifest": hardware,
-        "inspection_manifest": inspection
+        "inspection_manifest": inspection,
+        "hardware_attestation": hw_attestation,
+        "puf_hash": puf_hash
     }
     proof_package = sign_package(proof_package)
 
