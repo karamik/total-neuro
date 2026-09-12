@@ -158,15 +158,55 @@ For ready‑to‑use firmware files, check the [`binaries/`](binaries/README.md)
 - **Defence & space** – operate where there’s no Internet, and stay protected.
 - **Startups** – create your own chip without a $50M budget.
 
----
-
 ## 🔒 Security & Privacy
 
-- All processing stays **on your device**. Data never leaves your perimeter.
-- Hardware signature verification at boot – protects against counterfeit and malicious firmware.
-- Compiler code is dual‑licensed: open part (MIT) for demos and research, commercial core for production.
+**Military-grade protection at every layer - from silicon to software.**
+
+### Hardware-level security (on-chip)
+
+| Module | Protects against |
+|--------|------------------|
+| **Active Shield** | Physical probing, laser drilling, FIB attacks. Zeroizes keys on intrusion. |
+| **DPA Noise Generator** | Side-channel power analysis. Floods supply rails with random noise. |
+| **TMR** | Single-event upsets, fault injection, radiation. Majority voting on critical registers. |
+| **Key Obfuscation** | Fab-level trojans. Chip is a brick until activated with the eFuse key. |
+| **PUF Attestation** | Chip cloning. Each die gets a unique 128-bit fingerprint. |
+| **Firmware Signer Check** | Fake firmware, OTA attacks. Verifies ECDSA signature before boot. |
+
+### Hardware attestation in every request
+
+Every inference request through the TurboLLM agent triggers automatic hardware attestation. If the chip fails authentication, the request is blocked with HTTP 403.
+
+The PUF hash is embedded into the **Proof of Inspection (PoI)** chain — every decision is cryptographically bound to a specific physical chip.
+
+### Cryptographic Proof Packages
+
+Each inference generates a signed proof-package with:
+
+- `hardware_manifest` — chip ID, firmware, latency, power, spike times
+- `inspection_manifest` — G-Space metrics, entropy, drift, PoI
+- `hardware_attestation` — PUF ID, shield/signature/unlock status
+- `signature` — ECDSA binding all fields
+
+Submitted to **QRAP blockchain** for immutable audit.
+
+### Software-level security
+
+- **Immutable Anchor Vector** prevents model poisoning and gradual drift.
+- **Asymmetric correction** — baseline adapts only within safe bounds.
+- **Cryptographic model signing** — G-Space weights signed at compile time.
+
+### Compliance & auditing
+
+- Every decision traceable to a specific chip (via PUF).
+- Proof packages can be replayed and verified offline.
+- Suitable for **legal, medical, defence, and aerospace** applications.
+
+- Compiler code is dual-licensed: open part (MIT) for demos and research, commercial core for production.
+
 
 ---
+
 
 ## 🧠 Why Hardware Isn't a Dead End (The Business Reality)
 
