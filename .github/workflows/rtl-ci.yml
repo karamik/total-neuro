@@ -1,0 +1,41 @@
+name: RTL CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  rtl-verify:
+    name: RTL Verification (Icarus Verilog)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Icarus Verilog
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iverilog
+
+      - name: Verify Icarus Verilog installation
+        run: iverilog -V
+
+      - name: Compile all RTL modules (syntax check)
+        run: |
+          for f in rtl/*.sv; do
+            echo "=== Compiling $f ==="
+            iverilog -g2012 -o /tmp/rtl_test.vvp "$f"
+          done
+          echo "All RTL modules compiled successfully"
+
+      - name: Run demo testbench (Loader FSM simulation)
+        run: |
+          mkdir -p build
+          iverilog -g2012 -o build/demo_tb.vvp \
+            fpga/tb/demo_tb.sv \
+            fpga/tb/demo_loader_fsm.sv
+          vvp build/demo_tb.vvp
+
