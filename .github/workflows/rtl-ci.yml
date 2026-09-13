@@ -47,3 +47,11 @@ jobs:
           vvp build/tb_loader_fsm.vvp
           echo "Full Loader FSM testbench PASSED"
 
+      - name: Run error handling testbench (bad signature)
+        run: |
+          iverilog -g2012 -o build/tb_loader_fsm_error.vvp \
+            rtl/loader_fsm_asic.sv \
+            fpga/tb/tb_loader_fsm_error.sv
+          vvp build/tb_loader_fsm_error.vvp
+          echo "Error handling testbench PASSED"
+

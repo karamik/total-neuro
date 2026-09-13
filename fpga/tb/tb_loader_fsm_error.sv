@@ -5,7 +5,7 @@
 
 `timescale 1ns / 1ps
 
-module tb_loader_fsm;
+module tb_loader_fsm_error;
 
     localparam CLK_PERIOD = 10;
     localparam NUM_ROUTERS = 4;
@@ -94,7 +94,7 @@ module tb_loader_fsm;
 
     initial begin
         // Инициализация прошивки (4 роутера)
-        flash_mem[0] = 8'h4E;  // 'N'
+        flash_mem[0] = 8'h58;  // 'X' (WRONG)
         flash_mem[1] = 8'h45;  // 'E'
         flash_mem[2] = 8'h55;  // 'U'
         flash_mem[3] = 8'h52;  // 'R'
@@ -213,48 +213,14 @@ module tb_loader_fsm;
         apb_read(6'h00);
         #(CLK_PERIOD * 2);
 
-        if (load_done && !load_error) begin
-            $display("✅ load_done=1, load_error=0");
+        // Check error flag (expected load_error=1)
+        if (load_error && !load_done) begin
+            $display("✅ load_error=1, load_done=0 (expected)");
         end else begin
-            $display("❌ load_done=%0d, load_error=%0d", load_done, load_error);
+            $display("❌ load_error=%0d, load_done=%0d (unexpected)", load_error, load_done);
         end
-
-        // Check SRAM write counts
-        $display("--- SRAM write summary ---");
-        for (r = 0; r < NUM_ROUTERS; r = r + 1) begin
-            $display("Router %0d: %0d writes", r, sram_write_count[r]);
-        end
-
-        // Verify contents
-        if (sram_write_count[0] == 2 && sram_captured[0][0] == 32'h00010010 &&
-            sram_captured[0][1] == 32'h00020020) begin
-            $display("✅ Router 0 SRAM contents correct");
-        end else begin
-            $display("❌ Router 0 SRAM contents WRONG");
-        end
-
-        if (sram_write_count[1] == 1 && sram_captured[1][0] == 32'h00030030) begin
-            $display("✅ Router 1 SRAM contents correct");
-        end else begin
-            $display("❌ Router 1 SRAM contents WRONG");
-        end
-
-        if (sram_write_count[2] == 3 && sram_captured[2][0] == 32'h00040040 &&
-            sram_captured[2][1] == 32'h00050050 && sram_captured[2][2] == 32'h00060060) begin
-            $display("✅ Router 2 SRAM contents correct");
-        end else begin
-            $display("❌ Router 2 SRAM contents WRONG");
-        end
-
-        if (sram_write_count[3] == 2 && sram_captured[3][0] == 32'h00070070 &&
-            sram_captured[3][1] == 32'h00080080) begin
-            $display("✅ Router 3 SRAM contents correct");
-        end else begin
-            $display("❌ Router 3 SRAM contents WRONG");
-        end
-
         #(CLK_PERIOD * 20);
-        $display("=== Test complete ===");
+        $display("=== Error Test complete ===");
         $finish;
     end
 

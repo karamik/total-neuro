@@ -304,7 +304,9 @@ module loader_fsm_asic #(
                 if (control_reg[CTRL_START_LOAD]) next_state = READ_MAGIC;
             end
             READ_MAGIC: begin
-                if (mem_data_valid && !read_complete) begin
+                if (load_error_reg) begin
+                    next_state = ERROR_STATE;
+                end else if (mem_data_valid && !read_complete) begin
                     if (magic_cnt == 4) next_state = READ_VERSION;
                     else                next_state = READ_MAGIC;
                 end
