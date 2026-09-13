@@ -187,7 +187,7 @@ Each inference generates a signed proof-package with:
 - `hardware_manifest` — chip ID, firmware, latency, power, spike times
 - `inspection_manifest` — G-Space metrics, entropy, drift, PoI
 - `hardware_attestation` — PUF ID, shield/signature/unlock status
-- `signature` — ECDSA binding all fields
+- `signature` — ECDSA + CRYSTALS-Dilithium3 (hybrid post-quantum) binding all fields
 
 Submitted to **QRAP blockchain** for immutable audit.
 
