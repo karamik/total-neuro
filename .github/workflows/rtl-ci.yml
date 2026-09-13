@@ -63,3 +63,21 @@ jobs:
           vvp build/tb_apollo.vvp
           echo "Apollo-2 kill switch testbench PASSED"
 
+      - name: Run cycle monitor testbench
+        run: |
+          iverilog -g2012 -o build/tb_cm.vvp \
+            rtl/cycle_monitor.sv \
+            fpga/tb/tb_cycle_monitor.sv
+          vvp build/tb_cm.vvp
+          echo "Cycle monitor testbench PASSED"
+
+      - name: Run security integration testbench
+        run: |
+          iverilog -g2012 -o build/tb_si.vvp \
+            rtl/security_integration.sv \
+            rtl/cycle_monitor.sv \
+            rtl/apollo_kill_switch.sv \
+            fpga/tb/tb_security_integration.sv
+          vvp build/tb_si.vvp
+          echo "Security integration testbench PASSED"
+
