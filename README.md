@@ -239,6 +239,8 @@ Here's how we solve it – and why we're not afraid of model obsolescence:
 
 **These are not our words.** They come from independent engineers and industry professionals who analysed the project in depth.
 
+📄 **[Read the full independent expert review →](docs/expert_review.md)** — paradigm analysis of "Trusted Autonomous Silicon."
+
 ---
 
 ## 📈 Roadmap
