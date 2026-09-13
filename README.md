@@ -6,6 +6,7 @@ Runs locally, without clouds, with < 2 ms latency. Saves up to 99% of electricit
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
 [![GitHub Stars](https://img.shields.io/github/stars/karamik/total-neuro)](https://github.com/karamik/total-neuro/stargazers)
+[![RTL CI](https://github.com/karamik/total-neuro/actions/workflows/rtl-ci.yml/badge.svg)](https://github.com/karamik/total-neuro/actions/workflows/rtl-ci.yml)
 [![Open in GitHub Codespaces](https://img.shields.io/badge/Open_in-Codespaces-181717?logo=github)](https://codespaces.new/karamik/total-neuro)
 
 ---
