@@ -23,13 +23,17 @@ jobs:
       - name: Verify Icarus Verilog installation
         run: iverilog -V
 
-      - name: Compile all RTL modules (syntax check)
+      - name: Compile standalone RTL modules (syntax check)
         run: |
           for f in rtl/*.sv; do
+            # Skip modules that need dependencies (tested separately)
+            case "$f" in
+              *security_integration*) echo "=== Skipping $f (tested separately) ==="; continue ;;
+            esac
             echo "=== Compiling $f ==="
             iverilog -g2012 -o /tmp/rtl_test.vvp "$f"
           done
-          echo "All RTL modules compiled successfully"
+          echo "All standalone RTL modules compiled successfully"
 
       - name: Run demo testbench (simple Loader FSM)
         run: |
