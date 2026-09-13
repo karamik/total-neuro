@@ -55,3 +55,11 @@ jobs:
           vvp build/tb_loader_fsm_error.vvp
           echo "Error handling testbench PASSED"
 
+      - name: Run Apollo-2 kill switch testbench
+        run: |
+          iverilog -g2012 -o build/tb_apollo.vvp \
+            rtl/apollo_kill_switch.sv \
+            fpga/tb/tb_apollo_kill_switch.sv
+          vvp build/tb_apollo.vvp
+          echo "Apollo-2 kill switch testbench PASSED"
+
