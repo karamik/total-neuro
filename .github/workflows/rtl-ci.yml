@@ -31,11 +31,19 @@ jobs:
           done
           echo "All RTL modules compiled successfully"
 
-      - name: Run demo testbench (Loader FSM simulation)
+      - name: Run demo testbench (simple Loader FSM)
         run: |
           mkdir -p build
           iverilog -g2012 -o build/demo_tb.vvp \
             fpga/tb/demo_tb.sv \
             fpga/tb/demo_loader_fsm.sv
           vvp build/demo_tb.vvp
+
+      - name: Run full Loader FSM testbench
+        run: |
+          iverilog -g2012 -o build/tb_loader_fsm.vvp \
+            rtl/loader_fsm_asic.sv \
+            fpga/tb/tb_loader_fsm.sv
+          vvp build/tb_loader_fsm.vvp
+          echo "Full Loader FSM testbench PASSED"
 
