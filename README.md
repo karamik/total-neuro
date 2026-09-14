@@ -167,12 +167,16 @@ For ready‑to‑use firmware files, check the [`binaries/`](binaries/README.md)
 
 | Module | Protects against |
 |--------|------------------|
-| **Active Shield** | Physical probing, laser drilling, FIB attacks. Zeroizes keys on intrusion. |
+| **Active Shield** | Physical probing, laser drilling, FIB attacks. Graduated response: warning → critical → zeroization. |
+| **Shield Health Monitor** | Shield wear-out. Tracks breaks in N+1 mesh — avoids false zeroization from aging. |
 | **DPA Noise Generator** | Side-channel power analysis. Floods supply rails with random noise. |
 | **TMR** | Single-event upsets, fault injection, radiation. Majority voting on critical registers. |
 | **Key Obfuscation** | Fab-level trojans. Chip is a brick until activated with the eFuse key. |
 | **PUF Attestation** | Chip cloning. Each die gets a unique 128-bit fingerprint. |
-| **Firmware Signer Check** | Fake firmware, OTA attacks. Verifies ECDSA signature before boot. |
+| **PUF Health Monitor** | PUF aging drift. Warns before the fingerprint leaves correctable range. |
+| **Firmware Signer Check** | Fake firmware, OTA attacks. Verifies **ECDSA + CRYSTALS-Dilithium3** signature before boot. |
+| **Cycle Monitor** | Clock glitching. Fixed cycle counts detect timing attacks on STDP windows. |
+| **Apollo-2 Kill Switch** | Full compromise. Physical power cutoff via dual-key (global + sovereign). |
 
 ### Hardware attestation in every request
 
