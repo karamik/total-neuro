@@ -85,3 +85,11 @@ jobs:
           vvp build/tb_si.vvp
           echo "Security integration testbench PASSED"
 
+      - name: Run shield health monitor testbench
+        run: |
+          iverilog -g2012 -o build/tb_sh.vvp \
+            rtl/shield_health_monitor.sv \
+            fpga/tb/tb_shield_health_monitor.sv
+          vvp build/tb_sh.vvp
+          echo "Shield health monitor testbench PASSED"
+
