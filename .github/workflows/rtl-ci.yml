@@ -93,3 +93,11 @@ jobs:
           vvp build/tb_sh.vvp
           echo "Shield health monitor testbench PASSED"
 
+      - name: Run PUF health monitor testbench
+        run: |
+          iverilog -g2012 -o build/tb_phm.vvp \
+            rtl/puf_health_monitor.sv \
+            fpga/tb/tb_puf_health_monitor.sv
+          vvp build/tb_phm.vvp
+          echo "PUF health monitor testbench PASSED"
+
