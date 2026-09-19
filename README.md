@@ -84,6 +84,30 @@ The capital of France is Paris.
 
 ---
 
+## 🔌 FPGA Demo (with hardware)
+
+**Run the Loader FSM + security modules on a real Arty A7-35T board.**
+
+If you have a Digilent Arty A7 (~$200), you can synthesize and program the design in under 10 minutes:
+
+    git clone https://github.com/karamik/total-neuro.git
+    cd total-neuro
+    vivado -mode batch -source fpga/scripts/create_project.tcl
+
+This generates a bitstream that drives 16 LEDs on the board. You will see:
+
+- led[0] - loader finished successfully
+- led[1] - load error (corrupted signature)
+- led[2] - Active Shield intact
+- led[3] - Apollo-2 kill switch triggered
+- led[4] - heartbeat (blinks ~1.5 Hz)
+
+Full step-by-step guide: [fpga/README.md](fpga/README.md)
+
+> **Honest note:** the FPGA demo has been verified in simulation (Icarus Verilog) but has not yet been tested on physical Arty A7 hardware. If you run it and find issues, please open a GitHub issue.
+
+---
+
 ## 🚀 Key Features
 
 - **One‑click Model‑to‑Chip**  

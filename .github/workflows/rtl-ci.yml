@@ -35,6 +35,16 @@ jobs:
           done
           echo "All standalone RTL modules compiled successfully"
 
+      - name: Compile FPGA top module
+        run: |
+          iverilog -g2012 -o /tmp/top_fpga_test.vvp \
+            fpga/top_fpga.sv \
+            rtl/loader_fsm_asic.sv \
+            rtl/cycle_monitor.sv \
+            rtl/shield_health_monitor.sv \
+            rtl/apollo_kill_switch.sv
+          echo "FPGA top module compiled successfully"
+
       - name: Run demo testbench (simple Loader FSM)
         run: |
           mkdir -p build
