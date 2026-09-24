@@ -2,6 +2,7 @@
 
 **Turn any neural network into a microwatt‑powered chip in 10 minutes.**  
 Runs locally, without clouds, with < 2 ms latency. Saves up to 99% of electricity.
+[![Formal Verification](https://img.shields.io/badge/formal%20verification-k--induction%20PASSED-brightgreen)]()
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
@@ -182,6 +183,64 @@ For ready‑to‑use firmware files, check the [`binaries/`](binaries/README.md)
 - **Cloud providers** – cut electricity bills by 90%.
 - **Defence & space** – operate where there’s no Internet, and stay protected.
 - **Startups** – create your own chip without a $50M budget.
+
+## Formally Verified Safety Gate
+
+**Status:** k-induction PASSED - unbounded proof, not a test suite.
+
+The `consent_gate` module is a hardware root of trust. It passes a critical command to an actuator only when all of these hold:
+
+1. A valid cryptographic signature is presented (ECDSA + Dilithium3 hybrid).
+2. A physical human consent signal is asserted on a line the AI logic cannot access.
+3. No tamper has been detected.
+
+Once tamper is detected, a persistent kill switch latches permanently. Reset does not revive the FSM.
+
+### What was proved
+
+Five safety invariants, proved with yosys-smtbmc + z3 (temporal induction, unbounded depth):
+
+| # | Invariant | Meaning |
+|---|-----------|---------|
+| 1 | kill_switch is sticky | Once latched, stays high. Reset does not clear it. |
+| 2 | Entering WAIT_CONSENT requires valid crypto | FSM cannot reach consent stage without valid signature. |
+| 3 | Entering PASS requires past consent | FSM cannot enter pass state without human consent. |
+| 4 | gated_cmd_valid implies state is S_PASS | Critical bus only opens from pass state. |
+| 5 | NOT(kill_switch AND gated_cmd_valid) | After tamper, no command passes. Ever. |
+
+### Reproducing the proof
+
+Generate the SMT2 model:
+
+    yosys -p "read_verilog -sv rtl/consent_gate.sv; read_verilog -sv formal/consent_gate_formal.sv; prep -top consent_gate_formal; async2sync; dffunmap; write_smt2 -wires formal/consent_gate.smt2"
+
+BMC to depth 100:
+
+    yosys-smtbmc -s z3 -t 100 formal/consent_gate.smt2
+
+K-induction (unbounded proof):
+
+    yosys-smtbmc -i -s z3 -t 30 formal/consent_gate.smt2
+
+Both must print Status: PASSED. Full report in docs/verification.md.
+
+### Files
+
+- rtl/consent_gate.sv - critical command gate (formally verified)
+- rtl/pq_verifier_mcu.v - heartbeat watchdog for isolated MCU verifier
+- rtl/top_arty_a7.sv - FPGA wrapper for Digilent Arty A7-35T
+- formal/consent_gate_formal.sv - formal harness with assertions
+- docs/verification.md - full verification report
+
+### What is not verified
+
+- Cryptography is not in RTL. The proof assumes signature valid signals are correct.
+- pq_verifier_mcu.v is not formally verified. Only simulation coverage.
+- No physical FPGA run yet.
+- Liveness not proved. Only safety properties.
+- Timing not verified. Metastability MTBF out of scope.
+
+---
 
 ## 🔒 Security & Privacy
 
