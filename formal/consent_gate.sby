@@ -1,0 +1,16 @@
+[options]
+mode bmc
+depth 30
+
+[engines]
+smtbmc z3
+
+[script]
+read_verilog -sv rtl/consent_gate.sv
+read_verilog -sv formal/consent_gate_formal.sv
+prep -top consent_gate_formal
+write_smt2 -wires formal/consent_gate.smt2
+
+[files]
+rtl/consent_gate.sv
+formal/consent_gate_formal.sv
